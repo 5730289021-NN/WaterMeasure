@@ -1,3 +1,4 @@
+#include <TimerOne.h>
 #include <SevSeg.h>
 
 SevSeg sevseg; //Instantiate a seven segment object
@@ -5,6 +6,7 @@ SevSeg sevseg; //Instantiate a seven segment object
 int sensorPin = A0;    // select the input pin for the potentiometer
 int sensorValue = 0;  // variable to store the value coming from the sensor
 int mode = 0;
+
 
 
 
@@ -20,6 +22,14 @@ void setup() {
   bool resistorsOnSegments = true; // 'false' means resistors are on digit pins
   byte hardwareConfig = COMMON_CATHODE; // See README.md for options
   sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments);
+
+  Timer1.initialize(1000000);
+  Timer1.attachInterrupt(transmitSerial); // blinkLED to run every 0.15 seconds
+}
+
+void transmitSerial()
+{
+  Serial.println(sensorValue);
 }
 
 void loop() {
@@ -33,32 +43,24 @@ void loop() {
     {
       mode = 1;
     }
-    Serial.println(serialRead);
+    //Serial.println(serialRead);
   }
   
-  if(mode == 0)
-  {
-    sensorValue = 0;
-  }else
-  {
-    sensorValue = analogRead(sensorPin);
-    Serial.println(sensorValue);
-    delay(500);
-  }
+  sensorValue = (mode==0) ? 0 : analogRead(sensorPin);
   
   sevseg.setNumber(sensorValue,0);
   sevseg.refreshDisplay();
-  if(sensorValue < 200)
+  if(sensorValue < 250)
   {
     digitalWrite(10,LOW);
     digitalWrite(11,LOW);
     digitalWrite(12,LOW);
   }
-  else if(sensorValue < 260){
+  else if(sensorValue < 350){
     digitalWrite(10,HIGH);
     digitalWrite(11,LOW);
     digitalWrite(12,LOW);
-  }else if(sensorValue < 320){
+  }else if(sensorValue < 425){
     digitalWrite(10,HIGH);
     digitalWrite(11,HIGH);
     digitalWrite(12,LOW);
